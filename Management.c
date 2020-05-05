@@ -506,7 +506,7 @@ int updateInfoTable(struct InfoTable up_it) { // case 47 코딩 해야함...
     return 0;
 }
 
-int updateAdminTable(struct AdminTable up_at) { // case 37 코딩 중임...
+int updateAdminTable(struct AdminTable up_at) { // case 37
     struct AdminTable at;
 
     sqlite3 *db;
@@ -519,7 +519,9 @@ int updateAdminTable(struct AdminTable up_at) { // case 37 코딩 중임...
     int menu; // 수정 항목을 선택하는 변수
     char tmp; //엔터키 삭제 변수
 
-    int src_access; // 수정할 access ->다른 access로 변경됨.
+    char** result; // get table result
+    int row, col; // get table row,column
+
     int access;
 
     char src_pwd[PWDlen] = { 0, }; // 수정할 PWD -> 다른 PWD로 변경됨.
@@ -543,80 +545,123 @@ int updateAdminTable(struct AdminTable up_at) { // case 37 코딩 중임...
 
     puts("수정할 데이터의 id(기본키) 입력:");
     gets(id);
+    puts("수정할 id의 PWD 입력(PWD 틀리면 종료):");
+    gets(src_pwd);
 
     fflush(stdin);
-    strcpy(input_sql, "SELECT * FROM ADMIN WHERE ID = '");
+    strcpy(input_sql, "SELECT id, access FROM ADMIN WHERE pwd = '");
+    strcat(input_sql, src_pwd);
+    strcat(input_sql, "' AND id = '");
     strcat(input_sql, id);
     strcat(input_sql, "';");
     printf("%s\n", input_sql);
-
     rc = sqlite3_exec(db, input_sql, callback, 0, &errmsg);
     if(rc != SQLITE_OK) {
         fprintf(stderr, "Can't print Admin Table : %s\n", sqlite3_errmsg(db));
         return 1;
     }
     else {
-        fprintf(stderr, " Print Admin Table successfully\n");
+        fprintf(stderr, "Print Admin Table successfully\n");
     }
 
-    printf("1. ACCESS(권한) 수정\n");
-    printf("2. PWD(비밀번호) 수정\n");
-    printf("3. ACCESS(권한) 과 PWD(비밀번호) 모두 수정\n");
-    puts("수정 할 번호 입력:");
-    scanf("%d", &menu);
-    while((tmp = getchar()) != '\n') { //엔터키 삭제 함수
-        putchar(tmp);
+    rc = sqlite3_get_table(db, input_sql, &result, &row, &col, &errmsg);
+    //printf("%s\n", result[0]);  // id 와 pwd 를 정확히 입력하면 id 라고 화면에 출력됨.
+
+    if(!strcmp(result[0], "id")) {
+        printf("1. ACCESS(권한)만 수정\n");
+        printf("2. PWD(비밀번호)만 수정\n");
+        printf("3. ACCESS(권한)과 PWD(비밀번호) 모두 수정\n");
+        puts("input number:");
+        scanf("%d", &menu);
+        while((tmp = getchar()) != '\n') { //엔터키 삭제 함수
+            putchar(tmp);
+        }
+        switch(menu) {
+            case 1:
+                printf("수정할 ACCESS(권한)값 입력:\n");
+                scanf("%d", &access);
+                while((tmp = getchar()) != '\n') { //엔터키 삭제 함수
+                    putchar(tmp);
+                }
+                sprintf(buf_access, "%d", access); // access를 문자로 변환
+
+                fflush(stdin);
+                strcpy(input_sql, "UPDATE ADMIN SET access = ");
+                strcat(input_sql, buf_access);
+                strcat(input_sql, " WHERE id = '");
+                strcat(input_sql, id);
+                strcat(input_sql, "';");
+                printf("%s\n", input_sql);
+
+                rc = sqlite3_exec(db, input_sql, callback, res, &errmsg);
+                if(rc != SQLITE_OK) {
+                    fprintf(stderr, "Can't Access Update : %s\n", sqlite3_errmsg(db));
+                    return 1;
+                }
+                else {
+                    fprintf(stderr, "Access update successfully\n");
+                }
+                break;
+
+            case 2:
+                puts("수정할 PWD(비밀번호)값 입력:");
+                gets(pwd);
+
+                fflush(stdin);
+                strcpy(input_sql, "UPDATE ADMIN SET pwd = '");
+                strcat(input_sql, pwd);
+                strcat(input_sql, "' WHERE id = '");
+                strcat(input_sql, id);
+                strcat(input_sql, "';");
+                // printf("%s\n", input_sql);
+
+                rc = sqlite3_exec(db, input_sql, callback, res, &errmsg);
+                if(rc != SQLITE_OK) {
+                    fprintf(stderr, "Can't PWD Update : %s\n", sqlite3_errmsg(db));
+                    return 1;
+                }
+                else {
+                    fprintf(stderr, "PWD update successfully\n");
+                }
+                break;
+
+            case 3:
+                printf("수정할 ACCESS(권한)값 입력:\n");
+                scanf("%d", &access);
+                while((tmp = getchar()) != '\n') { //엔터키 삭제 함수
+                    putchar(tmp);
+                }
+                sprintf(buf_access, "%d", access); // access를 문자로 변환
+
+                puts("수정할 PWD(비밀번호)값 입력:");
+                gets(pwd);
+
+                fflush(stdin);
+                strcpy(input_sql, "UPDATE ADMIN SET (access, pwd) = (");
+                strcat(input_sql, buf_access);
+                strcat(input_sql, ", '");
+                strcat(input_sql, pwd);
+                strcat(input_sql, "') WHERE id = '");
+                strcat(input_sql, id);
+                strcat(input_sql, "';");
+                // printf("%s\n", input_sql);
+
+                rc = sqlite3_exec(db, input_sql, callback, res, &errmsg);
+                if(rc != SQLITE_OK) {
+                    fprintf(stderr, "Can't Access & PWD Update : %s\n", sqlite3_errmsg(db));
+                    return 1;
+                }
+                else {
+                    fprintf(stderr, "Access & PWD update successfully\n");
+                }
+                break;
+
+            default:
+                break;
+        }
     }
+    sqlite3_free_table(result);
 
-    switch(menu) {
-        case 1:
-            printf("수정할 ACCESS(권한)값 입력:\n");
-            scanf("%d", &access);
-            while((tmp = getchar()) != '\n') { //엔터키 삭제 함수
-                putchar(tmp);
-            }
-            break;
-
-        case 2:
-            puts("수정할 PWD(비밀번호)값 입력:");
-            gets(pwd);
-
-            break;
-
-        case 3:
-            printf("수정할 ACCESS(권한)값 입력:\n");
-            scanf("%d", &access);
-            while((tmp = getchar()) != '\n') { //엔터키 삭제 함수
-                putchar(tmp);
-            }
-            puts("수정할 PWD(비밀번호)값 입력:");
-            gets(pwd);
-
-            break;
-
-        default:
-           break;
-    }
-
-    fflush(stdin); /*
-    strcpy(input_sql, "UPDATE WHITELIST SET (date, whitelist) = ('");
-    strcat(input_sql, date);
-    strcat(input_sql, "', '");
-    strcat(input_sql, whitelist);
-    strcat(input_sql, "') ");
-    strcat(input_sql, "where whitelist = '");
-    strcat(input_sql, src_white);
-    strcat(input_sql, "';");
-    printf("%s\n", input_sql);
-
-    rc = sqlite3_exec(db, input_sql, callback, res, &errmsg);
-    if(rc != SQLITE_OK) {
-        fprintf(stderr, "Can't whitelist Update : %s\n", sqlite3_errmsg(db));
-        return 1;
-    }
-    else {
-        fprintf(stderr, "Whitelist update successfully\n");
-    } */
     sqlite3_close(db);
 
     return 0;
