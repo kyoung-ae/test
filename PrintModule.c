@@ -10,9 +10,9 @@ void printMenu(int pr_menu) {
 
     printf("Select Table Number\n");
     printf("1 : WHITELIST DB WHITELIST(whitelist, id) Table\n");
-    printf("2 : ADMINISTRATOR DB MAC(id, pk, mac) Table\n");
+    printf("2 : ADMINISTRATOR DB MAC(public_key, mac) Table\n");
     printf("3 : ADMINISTRATOR DB ADMIN(id, access, pwd) Table\n");
-    printf("4 : ADMINISTRATOR DB INFO(id, name, birth, email, phone) Table\n");
+    printf("4 : ADMINISTRATOR DB INFO(name, birth, email, phone) Table\n");
     printf("0 : EXIT\n");
     printf("Table :");
     scanf("%d", &tb);
@@ -69,17 +69,19 @@ void printMenu(int pr_menu) {
             insAdminTable();
             break;
 
-        case 37:
+        case 37: // ok
             //updateAdmin();
             updateAdminTable();
             break;
 
-        case 38:
-            delAdmin();
+        case 38: // ok
+            //delAdmin();
+            delAdminTable();
             break;
 
-        case 39:
-            selAdminInfo();
+        case 39: // ok
+            //selAdminInfo();
+            selAdminTable();
             break;
 
         case 46: // ok
@@ -87,17 +89,19 @@ void printMenu(int pr_menu) {
             insInfoTable();
             break;
 
-        case 47:
+        case 47: // ok
             //updateAdmin();
             updateInfoTable();
             break;
 
-        case 48:
-            delAdmin();
+        case 48: // ok
+            //delAdmin();
+            delInfoTable();
             break;
 
-        case 49:
-            selAdminInfo();
+        case 49: // ok
+            //selAdminInfo();
+            selInfoTable();
             break;
 
         default :
