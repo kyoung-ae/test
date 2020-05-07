@@ -24,14 +24,6 @@ char *dateNow(struct tm *t) { //date 가져오는 함수
     return now;
 }
 
-void Itmenu() { // INFO table Update menu
-        printf("1. NAME update\n");
-        printf("2. BIRTH update\n");
-        printf("3. EMAIL update\n");
-        printf("4. PHONE update\n");
-        printf("0. EXIT\n");
-}
-
 int selWhitelist(const char sel_wl[WLlen], OUT struct WhiteListTable sel_wt) { // case 19
     //char whitelist[WLlen];
     OUT struct WhiteListTable wt;
@@ -39,7 +31,6 @@ int selWhitelist(const char sel_wl[WLlen], OUT struct WhiteListTable sel_wt) { /
     sqlite3 *db;
    	char *errmsg;
    	char *sql; // table schema sql
-    sqlite3_stmt *res;
     int rc;
     char input_sql[512];
     char whitelist[WLlen] = { 0, };
@@ -74,10 +65,10 @@ int selWhitelist(const char sel_wl[WLlen], OUT struct WhiteListTable sel_wt) { /
         gets(whitelist);
 
         fflush(stdin);
-        strcpy(input_sql, "SELECT WHITELIST FROM WHITELIST WHERE WHITELIST like '%");
+        strcpy(input_sql, "SELECT * FROM WHITELIST WHERE WHITELIST like '%");
         strcat(input_sql, whitelist);
         strcat(input_sql, "%';");
-        printf("%s\n", input_sql);
+        //printf("%s\n", input_sql);
 
         rc = sqlite3_exec(db, input_sql, callback, 0, &errmsg);
         if(rc != SQLITE_OK) {
@@ -94,10 +85,10 @@ int selWhitelist(const char sel_wl[WLlen], OUT struct WhiteListTable sel_wt) { /
         gets(id);
 
         fflush(stdin);
-        strcpy(input_sql, "SELECT ID FROM WHITELIST WHERE ID like '%");
+        strcpy(input_sql, "SELECT * FROM WHITELIST WHERE ID = '");
         strcat(input_sql, id);
-        strcat(input_sql, "%';");
-        printf("%s\n", input_sql);
+        strcat(input_sql, "';");
+        //printf("%s\n", input_sql);
 
         rc = sqlite3_exec(db, input_sql, callback, 0, &errmsg);
         if(rc != SQLITE_OK) {
@@ -109,67 +100,29 @@ int selWhitelist(const char sel_wl[WLlen], OUT struct WhiteListTable sel_wt) { /
         }
     }
 
-    int sel_wl_wi() { // case 3
-        puts("search whitelist:");
-        gets(whitelist);
-        puts("search id:");
-        gets(id);
-
-        fflush(stdin);
-        strcpy(input_sql, "SELECT WHITELIST, ID FROM WHITELIST WHERE WHITELIST like '%");
-        strcat(input_sql, whitelist);
-        strcat(input_sql, "%' OR ID like '%");
-        strcat(input_sql, id);
-        strcat(input_sql, "%';");
-        printf("%s\n", input_sql);
-
-        rc = sqlite3_exec(db, input_sql, callback, 0, &errmsg);
-        if(rc != SQLITE_OK) {
-            fprintf(stderr, "Can't search : %s\n", sqlite3_errmsg(db));
-            return 1;
+    void Itmenu() { // WHITELIST table menu
+        printf("1. WHITELIST\n");
+        printf("2. ID\n");
+        printf("0. EXIT\n");
+        printf("검색하려는 항목의 번호를 고르세요:\n");
+        scanf("%d", &menu);
+        while((tmp = getchar()) != '\n') { //엔터키 삭제 함수
+            putchar(tmp);
         }
-        else {
-            fprintf(stderr, "Print search successfully\n");
+        switch(menu) {
+            case 1:
+                sel_wl_wl();
+                break;
+
+            case 2:
+                sel_wl_id();
+                break;
+
+            default:
+                break;
         }
     }
-
-    printf("WHITELIST TABLE's search\n");
-    printf("1. whitelist 로 검색\n");
-    printf("2. id 로 검색\n");
-    printf("3. whitelist 와 id 로 검색\n");
-    printf("0. EXIT\n");
-    printf("검색하려는 항목의 번호를 고르세요:");
-    scanf("%d", &menu);
-
-    while((tmp = getchar()) != '\n') { //엔터키 삭제 함수
-        putchar(tmp);
-    }
-
-    switch(menu) {
-        case 1:
-            sel_wl_wl();
-            break;
-
-        case 2:
-            sel_wl_id();
-            break;
-
-        case 3:
-            sel_wl_wi();
-            break;
-
-        default:
-            break;
-    }
-
-    rc = sqlite3_exec(db, input_sql, callback, 0, &errmsg);
-    if(rc != SQLITE_OK) {
-        fprintf(stderr, "Can't input : %s\n", sqlite3_errmsg(db));
-        return 1;
-    }
-    else {
-        fprintf(stderr, "Print input successfully\n");
-    }
+    Itmenu();
 
     sqlite3_close(db);
 
@@ -188,7 +141,7 @@ int selPublicKey(const char sel_id[IDlen], const char sel_pwd[PWDlen], OUT char 
     OUT char public_key[PKlen]; // OUT publickey를 반환함
 }
 
-int searchPWD(const char search_id[IDlen], const char seearch_pwd[PWDlen]) {
+int searchPWD(const char search_id[IDlen], const char seearch_pwd[PWDlen]) { // case 39 참고 // pwd 인증:pwd를 알고 있는 경우
     char id[IDlen];
     char pwd[PWDlen];
 }
@@ -521,7 +474,13 @@ int updateInfoTable(struct InfoTable up_it) { // case 47
     //printf("%s", metatype);
 
     if(!strcmp(result[0], "id")) {
-        Itmenu();
+        void Itmenu() { // INFO table menu
+            printf("1. NAME\n");
+            printf("2. BIRTH\n");
+            printf("3. EMAIL\n");
+            printf("4. PHONE\n");
+            printf("0. EXIT\n");
+        }
         puts("input number:");
         scanf("%d", &menu);
         while((tmp = getchar()) != '\n') { //엔터키 삭제 함수
@@ -894,28 +853,23 @@ int updateAccess(const char upacc_id[IDlen], int upacc_acc) {
     return 0;
 }
 
-int delAdminTable(struct AdminTable del_at) { // case 38 코딩해야 함
+int delAdminTable(struct AdminTable del_at) { // case 38
     struct AdminTable at;
 
     sqlite3 *db;
     char *errmsg;
     sqlite3_stmt *res;
     int rc;
-    char *sql;
     char input_sql[512];
     char id[IDlen] = { 0, };
-    int menu; // 수정 항목을 선택하는 변수
-    char tmp; //엔터키 삭제 변수
 
     char** result; // get table result
     int row, col; // get table row,column
 
     int access;
 
-    char src_pwd[PWDlen] = { 0, }; // 수정할 PWD -> 다른 PWD로 변경됨.
+    char del_pwd[PWDlen] = { 0, }; // 삭제되는 PWD
     char pwd[PWDlen] = { 0, };
-
-    char buf_access[2]; // int형의 access값을 문자로 받을 변수
 
     rc = sqlite3_open("ADMINISTRATOR.db", &db);
     if(rc != SQLITE_OK) {
@@ -931,18 +885,19 @@ int delAdminTable(struct AdminTable del_at) { // case 38 코딩해야 함
 
     printf("ADMIN TABLE's Update\n");
 
-    puts("수정할 데이터의 id(기본키) 입력:");
+    puts("삭제하는 데이터의 id(기본키) 입력:");
     gets(id);
-    puts("수정할 id의 PWD 입력(PWD 틀리면 종료):");
-    gets(src_pwd);
+    puts("삭제하는 id의 PWD 입력(PWD 틀리면 종료):");
+    gets(del_pwd);
 
     fflush(stdin);
     strcpy(input_sql, "SELECT id, access FROM ADMIN WHERE pwd = '");
-    strcat(input_sql, src_pwd);
+    strcat(input_sql, del_pwd);
     strcat(input_sql, "' AND id = '");
     strcat(input_sql, id);
     strcat(input_sql, "';");
-    printf("%s\n", input_sql);
+
+    //printf("%s\n", input_sql);
     rc = sqlite3_exec(db, input_sql, callback, 0, &errmsg);
     if(rc != SQLITE_OK) {
         fprintf(stderr, "Can't print Admin Table : %s\n", sqlite3_errmsg(db));
@@ -954,121 +909,221 @@ int delAdminTable(struct AdminTable del_at) { // case 38 코딩해야 함
 
     rc = sqlite3_get_table(db, input_sql, &result, &row, &col, &errmsg);
     //printf("%s\n", result[0]);  // id 와 pwd 를 정확히 입력하면 id 라고 화면에 출력됨.
-
     if(!strcmp(result[0], "id")) {
-        printf("1. ACCESS(권한)만 수정\n");
-        printf("2. PWD(비밀번호)만 수정\n");
-        printf("3. ACCESS(권한)과 PWD(비밀번호) 모두 수정\n");
-        puts("input number:");
+        fflush(stdin);
+        strcpy(input_sql, "DELETE from ADMIN where id = '");
+        strcat(input_sql, id);
+        strcat(input_sql, "';");
+        //printf("%s\n", input_sql);
+
+        rc = sqlite3_exec(db, input_sql, callback, res, &errmsg);
+        if(rc != SQLITE_OK) {
+                fprintf(stderr, "Can't delete : %s\n", sqlite3_errmsg(db));
+            return 1;
+        }
+        else {
+            fprintf(stderr, "Delete successfully\n");
+        }
+    }
+    sqlite3_free_table(result);
+
+    sqlite3_close(db);
+
+    return 0;
+}
+
+int selAdminTable(struct AdminTable sel_at) { // case 39 코딩해야 함
+    struct AdminTable at;
+
+    sqlite3 *db;
+    char *errmsg;
+    int rc;
+    char input_sql[512];
+   	char *sql; // table schema sql
+    char id[IDlen] = { 0, };
+    char pwd[PWDlen] = { 0, };
+    char cmp_pwd[PWDlen]; // 원본 pwd값과 비교 할 변수
+    int access;
+    char tmp; //엔터키 삭제 변수
+    char buf_access[2]; // int형의 access값을 문자로 받을 변수
+
+    int menu; // search menu
+
+    rc = sqlite3_open("ADMINISTRATOR.db", &db);
+    if(rc != SQLITE_OK) {
+        fprintf(stderr, "Can't open ADMINISTRATOR DB : %s\n", sqlite3_errmsg(db));
+       	return 1;
+    }
+   	else {
+        fprintf(stderr, "Opened ADMINISTRATOR database successfully\n");
+    }
+    sqlite3_busy_timeout(db, 500); // db open시 timeout 500ms로 설정
+
+    //ADMIN Table 출력
+    sql = "select id, access from ADMIN";
+    rc = sqlite3_exec(db, sql, callback, 0, &errmsg);
+    if(rc != SQLITE_OK) {
+        fprintf(stderr, "Can't print schema : %s\n", sqlite3_errmsg(db));
+        return 1;
+    }
+    else {
+        fprintf(stderr, "Print schema successfully\n");
+    }
+
+    int sel_at_id() { // case 1
+        puts("search id:");
+        gets(id);
+
+        fflush(stdin);
+        strcpy(input_sql, "SELECT id, access FROM ADMIN WHERE id = '");
+        strcat(input_sql, id);
+        strcat(input_sql, "';");
+        //printf("%s\n", input_sql);
+
+        rc = sqlite3_exec(db, input_sql, callback, 0, &errmsg);
+        if(rc != SQLITE_OK) {
+            fprintf(stderr, "Can't search : %s\n", sqlite3_errmsg(db));
+            return 1;
+        }
+        else {
+            fprintf(stderr, "Print search successfully\n");
+        }
+    }
+
+    int sel_at_access() { // case 2
+        puts("search access:");
+        scanf("%d", &access);
+        while((tmp = getchar()) != '\n') { //엔터키 삭제 함수
+            putchar(tmp);
+        }
+        sprintf(buf_access, "%d", access); // access를 문자로 변환
+
+        fflush(stdin);
+        strcpy(input_sql, "SELECT id, access FROM ADMIN WHERE access = ");
+        strcat(input_sql, buf_access);
+        strcat(input_sql, ";");
+        //printf("%s\n", input_sql);
+
+        rc = sqlite3_exec(db, input_sql, callback, 0, &errmsg);
+        if(rc != SQLITE_OK) {
+            fprintf(stderr, "Can't search : %s\n", sqlite3_errmsg(db));
+            return 1;
+        }
+        else {
+            fprintf(stderr, "Print search successfully\n");
+        }
+    }
+
+    int sel_at_pwd() { // case 3 // int searchPWD(const char search_id[IDlen], const char seearch_pwd[PWDlen]) pwd 인증
+        puts("seach pwd's ID:");
+        gets(id);
+        puts("search pwd:");
+        gets(cmp_pwd);
+
+        fflush(stdin);
+        strcpy(input_sql, "SELECT id, access FROM ADMIN WHERE id = '");
+        strcat(input_sql, id);
+        strcat(input_sql, "' AND pwd = '");
+        strcat(input_sql, cmp_pwd);
+        strcat(input_sql, "';");
+        //printf("%s\n", input_sql);
+
+        rc = sqlite3_exec(db, input_sql, callback, 0, &errmsg);
+        if(rc != SQLITE_OK) {
+            fprintf(stderr, "Can't search : %s\n", sqlite3_errmsg(db));
+            return 1;
+        }
+        else {
+            fprintf(stderr, "Print search successfully\n");
+        }
+    }
+
+    void Itmenu() { // ADMIN table menu
+        printf("1. ID\n");
+        printf("2. ACCESS\n");
+        printf("3. PWD\n");
+        printf("0. EXIT\n");
+        printf("검색하려는 항목의 번호를 고르세요:");
         scanf("%d", &menu);
         while((tmp = getchar()) != '\n') { //엔터키 삭제 함수
             putchar(tmp);
         }
+
         switch(menu) {
             case 1:
-                printf("수정할 ACCESS(권한)값 입력:\n");
-                scanf("%d", &access);
-                while((tmp = getchar()) != '\n') { //엔터키 삭제 함수
-                    putchar(tmp);
-                }
-                sprintf(buf_access, "%d", access); // access를 문자로 변환
-
-                fflush(stdin);
-                strcpy(input_sql, "UPDATE ADMIN SET access = ");
-                strcat(input_sql, buf_access);
-                strcat(input_sql, " WHERE id = '");
-                strcat(input_sql, id);
-                strcat(input_sql, "';");
-                printf("%s\n", input_sql);
-
-                rc = sqlite3_exec(db, input_sql, callback, res, &errmsg);
-                if(rc != SQLITE_OK) {
-                    fprintf(stderr, "Can't Access Update : %s\n", sqlite3_errmsg(db));
-                    return 1;
-                }
-                else {
-                    fprintf(stderr, "Access update successfully\n");
-                }
+                sel_at_id();
                 break;
 
             case 2:
-                puts("수정할 PWD(비밀번호)값 입력:");
-                gets(pwd);
-
-                fflush(stdin);
-                strcpy(input_sql, "UPDATE ADMIN SET pwd = '");
-                strcat(input_sql, pwd);
-                strcat(input_sql, "' WHERE id = '");
-                strcat(input_sql, id);
-                strcat(input_sql, "';");
-                // printf("%s\n", input_sql);
-
-                rc = sqlite3_exec(db, input_sql, callback, res, &errmsg);
-                if(rc != SQLITE_OK) {
-                    fprintf(stderr, "Can't PWD Update : %s\n", sqlite3_errmsg(db));
-                    return 1;
-                }
-                else {
-                    fprintf(stderr, "PWD update successfully\n");
-                }
+                sel_at_access();
                 break;
 
             case 3:
-                printf("수정할 ACCESS(권한)값 입력:\n");
-                scanf("%d", &access);
-                while((tmp = getchar()) != '\n') { //엔터키 삭제 함수
-                    putchar(tmp);
-                }
-                sprintf(buf_access, "%d", access); // access를 문자로 변환
-
-                puts("수정할 PWD(비밀번호)값 입력:");
-                gets(pwd);
-
-                fflush(stdin);
-                strcpy(input_sql, "UPDATE ADMIN SET (access, pwd) = (");
-                strcat(input_sql, buf_access);
-                strcat(input_sql, ", '");
-                strcat(input_sql, pwd);
-                strcat(input_sql, "') WHERE id = '");
-                strcat(input_sql, id);
-                strcat(input_sql, "';");
-                // printf("%s\n", input_sql);
-
-                rc = sqlite3_exec(db, input_sql, callback, res, &errmsg);
-                if(rc != SQLITE_OK) {
-                    fprintf(stderr, "Can't Access & PWD Update : %s\n", sqlite3_errmsg(db));
-                    return 1;
-                }
-                else {
-                    fprintf(stderr, "Access & PWD update successfully\n");
-                }
+                sel_at_pwd();
                 break;
 
             default:
                 break;
         }
     }
-    sqlite3_free_table(result);
+    Itmenu();
 
+    sqlite3_close(db);
 
-    ////////////////////////////////////////////////////////
-        res = "Callback Function Called";
+    return 0;
+}
 
-    puts("WHITELIST TABLE's records delete.\n");
-    puts("input whitelist:");
-    gets(whitelist);
-    puts("input id:");
+int delInfoTable(struct InfoTable del_it) { // case 48
+    struct InfoTable it;
+
+    sqlite3 *db;
+    char *errmsg;
+    int rc;
+    sqlite3_stmt *res;
+    char input_sql[512];
+    char id[IDlen] = { 0, };
+    char name[NAMElen] = { 0, };
+    char birth[BIRTHlen] = { 0, };
+    char email[EMAILlen] = { 0, };
+    char phone[PHONElen] = { 0, };
+    char date[DATElen] = { 0, };
+
+    rc = sqlite3_open("ADMINISTRATOR.db", &db);
+    if(rc != SQLITE_OK) {
+        fprintf(stderr, "Can't open ADMINISTRATOR DB : %s\n", sqlite3_errmsg(db));
+       	return 1;
+    }
+   	else {
+        fprintf(stderr, "Opened ADMINISTRATOR database successfully\n");
+    }
+    sqlite3_busy_timeout(db, 500); //db open시 timeout 500ms로 설정
+
+    puts("삭제하는 데이터의 id(기본키) 입력:");
     gets(id);
 
     fflush(stdin);
-    strcpy(input_sql, "DELETE from WHITELIST where whitelist = '");
-    strcat(input_sql, whitelist);
+    strcpy(input_sql, "SELECT * FROM INFO WHERE id = '");
+    strcat(input_sql, id);
     strcat(input_sql, "';");
-    printf("%s\n", input_sql);
+    //printf("%s\n", input_sql);
+    rc = sqlite3_exec(db, input_sql, callback, 0, &errmsg);
+    if(rc != SQLITE_OK) {
+        fprintf(stderr, "Can't print Info Table : %s\n", sqlite3_errmsg(db));
+        return 1;
+    }
+    else {
+        fprintf(stderr, "Print Info Table successfully\n");
+    }
+
+    fflush(stdin);
+    strcpy(input_sql, "DELETE from INFO where id = '");
+    strcat(input_sql, id);
+    strcat(input_sql, "';");
+    //printf("%s\n", input_sql);
     rc = sqlite3_exec(db, input_sql, callback, res, &errmsg);
     if(rc != SQLITE_OK) {
-        fprintf(stderr, "Can't delete : %s\n", sqlite3_errmsg(db));
-        return 1;
+            fprintf(stderr, "Can't delete : %s\n", sqlite3_errmsg(db));
+            return 1;
     }
     else {
         fprintf(stderr, "Delete successfully\n");
@@ -1078,17 +1133,186 @@ int delAdminTable(struct AdminTable del_at) { // case 38 코딩해야 함
     return 0;
 }
 
-int selAdminTable(struct AdminTable sel_at) { // case 39 코딩해야 함
-    struct AdminTable at;
-
-}
-
-int delInfoTable(struct InfoTable del_it) { // case 48 코딩해야 함
+int selInfoTable(struct InfoTable sel_it) { // case 49
     struct InfoTable it;
 
-}
+    sqlite3 *db;
+    char *errmsg;
+    int rc;
+    char input_sql[512];
+   	char *sql; // table schema sql
+    char id[IDlen] = { 0, };
+    char name[NAMElen] = { 0, };
+    char birth[BIRTHlen] = { 0, };
+    char email[EMAILlen] = { 0, };
+    char phone[PHONElen] = { 0, };
+    char date[DATElen] = { 0, };
 
-int selInfoTable(struct InfoTable sel_it) { // case 49 코딩해야 함
-    struct InfoTable it;
+    int menu; // search menu
+    char tmp; // Enter Key remove
 
+    rc = sqlite3_open("ADMINISTRATOR.db", &db);
+    if(rc != SQLITE_OK) {
+        fprintf(stderr, "Can't open ADMINISTRATOR DB : %s\n", sqlite3_errmsg(db));
+       	return 1;
+    }
+   	else {
+        fprintf(stderr, "Opened ADMINISTRATOR database successfully\n");
+    }
+    sqlite3_busy_timeout(db, 500); // db open시 timeout 500ms로 설정
+
+    //INFO Table 출력
+    sql = "select * from INFO";
+    rc = sqlite3_exec(db, sql, callback, 0, &errmsg);
+    if(rc != SQLITE_OK) {
+        fprintf(stderr, "Can't print schema : %s\n", sqlite3_errmsg(db));
+        return 1;
+    }
+    else {
+        fprintf(stderr, "Print schema successfully\n");
+    }
+
+    int sel_it_id() { // case 1
+        puts("search id:");
+        gets(id);
+
+        fflush(stdin);
+        strcpy(input_sql, "SELECT * FROM INFO WHERE id = '");
+        strcat(input_sql, id);
+        strcat(input_sql, "';");
+        //printf("%s\n", input_sql);
+
+        rc = sqlite3_exec(db, input_sql, callback, 0, &errmsg);
+        if(rc != SQLITE_OK) {
+            fprintf(stderr, "Can't search : %s\n", sqlite3_errmsg(db));
+            return 1;
+        }
+        else {
+            fprintf(stderr, "Print search successfully\n");
+        }
+    }
+
+    int sel_it_name() { // case 2
+        puts("search name:");
+        gets(name);
+
+        fflush(stdin);
+        strcpy(input_sql, "SELECT * FROM INFO WHERE name like '%");
+        strcat(input_sql, name);
+        strcat(input_sql, "%';");
+        //printf("%s\n", input_sql);
+
+        rc = sqlite3_exec(db, input_sql, callback, 0, &errmsg);
+        if(rc != SQLITE_OK) {
+            fprintf(stderr, "Can't search : %s\n", sqlite3_errmsg(db));
+            return 1;
+        }
+        else {
+            fprintf(stderr, "Print search successfully\n");
+        }
+    }
+
+    int sel_it_birth() { // case 3
+        puts("search birth:");
+        gets(birth);
+
+        fflush(stdin);
+        strcpy(input_sql, "SELECT * FROM INFO WHERE birth like '%");
+        strcat(input_sql, birth);
+        strcat(input_sql, "%';");
+        //printf("%s\n", input_sql);
+
+        rc = sqlite3_exec(db, input_sql, callback, 0, &errmsg);
+        if(rc != SQLITE_OK) {
+            fprintf(stderr, "Can't search : %s\n", sqlite3_errmsg(db));
+            return 1;
+        }
+        else {
+            fprintf(stderr, "Print search successfully\n");
+        }
+    }
+
+    int sel_it_email() { // case 4
+        puts("search email:");
+        gets(email);
+
+        fflush(stdin);
+        strcpy(input_sql, "SELECT * FROM INFO WHERE email like '%");
+        strcat(input_sql, email);
+        strcat(input_sql, "%';");
+        //printf("%s\n", input_sql);
+
+        rc = sqlite3_exec(db, input_sql, callback, 0, &errmsg);
+        if(rc != SQLITE_OK) {
+            fprintf(stderr, "Can't search : %s\n", sqlite3_errmsg(db));
+            return 1;
+        }
+        else {
+            fprintf(stderr, "Print search successfully\n");
+        }
+    }
+
+    int sel_it_phone() { // case 5
+        puts("search phone:");
+        gets(phone);
+
+        fflush(stdin);
+        strcpy(input_sql, "SELECT * FROM INFO WHERE phone like '%");
+        strcat(input_sql, phone);
+        strcat(input_sql, "%';");
+        //printf("%s\n", input_sql);
+
+        rc = sqlite3_exec(db, input_sql, callback, 0, &errmsg);
+        if(rc != SQLITE_OK) {
+            fprintf(stderr, "Can't search : %s\n", sqlite3_errmsg(db));
+            return 1;
+        }
+        else {
+            fprintf(stderr, "Print search successfully\n");
+        }
+    }
+
+    void Itmenu() { // INFO table menu
+        printf("1. ID\n");
+        printf("2. NAME\n");
+        printf("3. BIRTH\n");
+        printf("4. EMAIL\n");
+        printf("5. PHONE\n");
+        printf("0. EXIT\n");
+        printf("검색하려는 항목의 번호를 고르세요:");
+        scanf("%d", &menu);
+        while((tmp = getchar()) != '\n') { //엔터키 삭제 함수
+            putchar(tmp);
+        }
+
+        switch(menu) {
+            case 1:
+                sel_it_id();
+                break;
+
+            case 2:
+                sel_it_name();
+                break;
+
+            case 3:
+                sel_it_birth();
+                break;
+
+            case 4:
+                sel_it_email();
+                break;
+
+            case 5:
+                sel_it_phone();
+                break;
+
+            default:
+                break;
+        }
+    }
+    Itmenu();
+
+    sqlite3_close(db);
+
+    return 0;
 }
