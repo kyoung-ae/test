@@ -22,6 +22,7 @@
 #include "DBlen.h"
 #include "DBLogin.h"
 #include "DBBackupR.h"
+#include "DBProgram.h"
 
 int createDB() {
     sqlite3 *db;
