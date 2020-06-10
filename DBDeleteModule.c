@@ -22,6 +22,7 @@
 #include "DBlen.h"
 #include "DBLogin.h"
 #include "DBBackupR.h"
+#include "DBProgram.h"
 
 static int callback(void *NotUsed, int argc, char **argv, char **azColName) { // callback
     int i;
