@@ -22,8 +22,9 @@
 #include "DBlen.h"
 #include "DBLogin.h"
 #include "DBBackupR.h"
+#include "DBProgram.h"
 
-int main(int argc, char *argv[]) {
+int selMenu() {
     createDB(); // DB 와 Table 생성 함수 // DBCreate.c
     if(login() == 1) { // DB 로그인 : id & pwd로 확인
         printf("\n");
