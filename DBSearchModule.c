@@ -111,7 +111,7 @@ int search_id() { // case 36 : id를 기준으로 검색
     }
 
     while(1) { // 검색 결과 항목 선택
-        memset(str[0], '\0', ACCESSlen);
+        memset(str, '\0', ACCESSlen);
         strsize = 0;
         print_search_i(); // DBPrintModule.c
         printf("input : ");
